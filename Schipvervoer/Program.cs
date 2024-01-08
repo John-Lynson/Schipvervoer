@@ -7,19 +7,22 @@ class Program
 {
     static void Main(string[] args)
     {
-        // Voorbeeld: Maak een schip aan
+        // Creëer een schip (voorbeeld)
         Schip schip = new Schip(100000); // MaxGewicht als voorbeeld
 
-        // Voeg containers toe (voorbeeld)
+        // Voeg voorbeeldcontainers toe
         schip.VoegContainerToe(new Container(30000, false, false));
         schip.VoegContainerToe(new Container(4000, true, false));
+        // Voeg meer containers toe zoals nodig
 
-        // Maak een instantie van de indelingsalgoritme
+        // Indelen
         IndelingsAlgoritme algoritme = new IndelingsAlgoritme();
-
-        // Roep de indelingsmethode aan
         algoritme.IndeelContainers(schip, schip.Containers);
 
-        // Voeg hier je logica toe om de indeling te tonen of te testen
+        // Visualisatie van de indeling
+        foreach (var container in schip.Containers)
+        {
+            Console.WriteLine($"Container Gewicht: {container.Gewicht}, Waardevol: {container.IsWaardeVol}, Gekoeld: {container.MoetGekoeldWorden}");
+        }
     }
 }

@@ -1,12 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using Schipvervoer.Models;
 
-namespace Schipvervoer.Models
+public class Schip
 {
-    internal class Ship
+    public int MaxGewicht { get; set; }
+    public List<Container> Containers { get; set; }
+
+    public Schip(int maxGewicht)
     {
+        MaxGewicht = maxGewicht;
+        Containers = new List<Container>();
     }
+
+    public void VoegContainerToe(Container container)
+    {
+        // Logica om te controleren of de container toegevoegd kan worden
+        // Bijvoorbeeld controle op maximaal gewicht, type container, etc.
+    }
+
+    // Methoden voor balans en gewichtscontroles
 }
