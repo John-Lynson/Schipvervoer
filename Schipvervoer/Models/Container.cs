@@ -2,21 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Schipvervoer.Logic;
 using System.Threading.Tasks;
 
 namespace Schipvervoer.Models
 {
     public class Container
     {
-        public int Gewicht { get; set; }
-        public bool IsWaardeVol { get; set; }
-        public bool MoetGekoeldWorden { get; set; }
+        public int Weight { get; set; }
+        public bool IsValuable { get; set; }
+        public bool RequiresCooling { get; set; }
 
-        public Container(int gewicht, bool isWaardeVol, bool moetGekoeldWorden)
+        public Container(int weight, bool isValuable, bool requiresCooling)
         {
-            Gewicht = gewicht;
-            IsWaardeVol = isWaardeVol;
-            MoetGekoeldWorden = moetGekoeldWorden;
+            Weight = weight;
+            IsValuable = isValuable;
+            RequiresCooling = requiresCooling;
         }
     }
 }

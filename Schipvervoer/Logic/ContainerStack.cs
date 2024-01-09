@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Schipvervoer.Logic
 {
-    internal class SchipLogica
+    internal class ContainerStack
     {
     }
 }
