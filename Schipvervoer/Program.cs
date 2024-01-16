@@ -14,6 +14,8 @@ class Program
         Console.WriteLine("Voer het aantal containers in:");
         int containerCount = int.Parse(Console.ReadLine());
 
+        List<Container> containers = new List<Container>();
+
         for (int i = 0; i < containerCount; i++)
         {
             Console.WriteLine($"Container {i + 1}: Voer gewicht, is waardevol (true/false), vereist koeling (true/false) in:");
@@ -23,11 +25,11 @@ class Program
             bool requiresCooling = bool.Parse(inputs[2]);
 
             Container container = new Container(weight, isValuable, requiresCooling);
-            ship.Containers.Add(container);
+            containers.Add(container);
         }
 
         ContainerAllocationAlgorithm algorithm = new ContainerAllocationAlgorithm();
-        algorithm.AllocateContainersToStacks(ship, ship.Containers);
+        algorithm.AllocateContainersToStacks(ship, containers);
 
         // Visualisatie van de indeling
         VisualizeShipLayout(ship);
