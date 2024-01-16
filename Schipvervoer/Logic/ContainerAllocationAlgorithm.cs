@@ -44,5 +44,35 @@ namespace Schipvervoer.Logic
             }
             return false; // Geen geschikte plaats gevonden
         }
+
+        public void AllocateContainersToStacks(Ship ship, List<Container> containers)
+        {
+            foreach (var container in containers)
+            {
+                bool placed = false;
+                foreach (var stack in ship.ContainerStacks)
+                {
+                    if (stack.CanPlaceOnTop(container))
+                    {
+                        stack.AddContainer(container);
+                        placed = true;
+                        break;
+                    }
+                }
+
+                if (!placed)
+                {
+                    // Als de container niet geplaatst kan worden, maak een nieuwe stack
+                    var newStack = new ContainerStack();
+                    newStack.AddContainer(container);
+                    ship.AddContainerStack(newStack);
+                }
+            }
+
+            if (!ship.IsWeightDistributedProperly() || !ship.IsMinWeightMaintained())
+            {
+                throw new InvalidOperationException("Kan containers niet correct plaatsen");
+            }
+        }
     }
 }

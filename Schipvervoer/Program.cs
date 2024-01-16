@@ -1,28 +1,48 @@
 ﻿using Schipvervoer.Logic;
-using System;
-using System.Collections.Generic;
 using Schipvervoer.Models;
+using System;
 
 class Program
 {
     static void Main(string[] args)
     {
-        // Creëer een schip (voorbeeld)
-        Schip schip = new Schip(100000); // MaxGewicht als voorbeeld
+        Console.WriteLine("Voer de maximale gewichtscapaciteit van het schip in:");
+        int maxWeight = int.Parse(Console.ReadLine());
 
-        // Voeg voorbeeldcontainers toe
-        schip.VoegContainerToe(new Container(30000, false, false));
-        schip.VoegContainerToe(new Container(4000, true, false));
-        // Voeg meer containers toe zoals nodig
+        Ship ship = new Ship(maxWeight);
 
-        // Indelen
-        IndelingsAlgoritme algoritme = new IndelingsAlgoritme();
-        algoritme.IndeelContainers(schip, schip.Containers);
+        Console.WriteLine("Voer het aantal containers in:");
+        int containerCount = int.Parse(Console.ReadLine());
+
+        for (int i = 0; i < containerCount; i++)
+        {
+            Console.WriteLine($"Container {i + 1}: Voer gewicht, is waardevol (true/false), vereist koeling (true/false) in:");
+            string[] inputs = Console.ReadLine().Split(',');
+            int weight = int.Parse(inputs[0]);
+            bool isValuable = bool.Parse(inputs[1]);
+            bool requiresCooling = bool.Parse(inputs[2]);
+
+            Container container = new Container(weight, isValuable, requiresCooling);
+            ship.Containers.Add(container);
+        }
+
+        ContainerAllocationAlgorithm algorithm = new ContainerAllocationAlgorithm();
+        algorithm.AllocateContainersToStacks(ship, ship.Containers);
 
         // Visualisatie van de indeling
-        foreach (var container in schip.Containers)
+        VisualizeShipLayout(ship);
+    }
+
+    static void VisualizeShipLayout(Ship ship)
+    {
+        Console.WriteLine("Indeling van het schip:");
+        foreach (var stack in ship.ContainerStacks)
         {
-            Console.WriteLine($"Container Gewicht: {container.Gewicht}, Waardevol: {container.IsWaardeVol}, Gekoeld: {container.MoetGekoeldWorden}");
+            Console.WriteLine("Stack:");
+            foreach (var container in stack.Containers)
+            {
+                Console.WriteLine($"- Gewicht: {container.Weight}, Waardevol: {container.IsValuable}, Gekoeld: {container.RequiresCooling}");
+            }
         }
     }
 }
