@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Schipvervoer.Models;
 
 namespace Schipvervoer.Logic
 {
     public class ContainerStack
     {
+        private const int MaxWeightOnTop = 120000; // Maximaal gewicht in kg
         public List<Container> Containers { get; private set; }
 
         public ContainerStack()
@@ -18,21 +16,32 @@ namespace Schipvervoer.Logic
 
         public bool CanPlaceOnTop(Container container)
         {
-            // Controleer of de container bovenop geplaatst kan worden.
-            // Bijvoorbeeld, waardevolle containers mogen niet bedekt worden.
-
+            // Controleer of de container bovenop geplaatst kan worden
             if (container.IsValuable)
             {
-                // Waardevolle containers kunnen alleen bovenop een lege stack of bovenop een andere waardevolle container.
+                // Waardevolle containers kunnen alleen bovenop een lege stack of bovenop een andere waardevolle container
                 return Containers.Count == 0 || Containers.All(c => c.IsValuable);
             }
             else
             {
-                // Voor reguliere containers, controleer andere condities (zoals gewichtsbeperkingen).
-                return true; // Dit moet verder uitgewerkt worden op basis van specifieke regels.
+                // Voor reguliere containers, controleer of het totale gewicht niet overschreden wordt
+                int totalWeightAbove = Containers.Sum(c => c.Weight);
+                return totalWeightAbove + container.Weight <= MaxWeightOnTop;
             }
         }
 
-        // Overige methoden...
+        public void AddContainer(Container container)
+        {
+            if (!CanPlaceOnTop(container))
+            {
+                throw new InvalidOperationException("Kan container niet bovenop plaatsen");
+            }
+            Containers.Add(container);
+        }
+
+        public int TotalWeight()
+        {
+            return Containers.Sum(c => c.Weight);
+        }
     }
 }

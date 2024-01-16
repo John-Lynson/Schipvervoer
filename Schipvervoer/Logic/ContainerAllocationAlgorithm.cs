@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Schipvervoer.Models;
 
 namespace Schipvervoer.Logic
@@ -18,6 +16,7 @@ namespace Schipvervoer.Logic
                 if (!TryPlaceContainer(ship, container))
                 {
                     // Behandel het geval waar een container niet geplaatst kan worden
+                    throw new InvalidOperationException("Kan container niet plaatsen");
                 }
             }
         }
@@ -34,17 +33,15 @@ namespace Schipvervoer.Logic
 
         private bool TryPlaceContainer(Ship ship, Container container)
         {
-            // Voorbeeld: Vind de juiste ContainerStack op het schip om de container te plaatsen.
+            // Implementeer de logica om de container op de juiste plek te plaatsen
             foreach (var stack in ship.ContainerStacks)
             {
                 if (stack.CanPlaceOnTop(container))
                 {
-                    // Voeg hier de logica toe om de container aan de stack toe te voegen.
                     stack.AddContainer(container);
                     return true;
                 }
             }
-
             return false; // Geen geschikte plaats gevonden
         }
     }
