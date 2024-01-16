@@ -33,15 +33,14 @@ namespace Schipvervoer.Logic
 
         private bool TryPlaceContainer(Ship ship, Container container)
         {
-            // Implementeer de logica om de container op de juiste plek te plaatsen
-            foreach (var stack in ship.ContainerStacks)
+            // Zoek naar een bestaande stack waar de container bovenop kan
+            var suitableStack = ship.ContainerStacks.FirstOrDefault(stack => stack.CanPlaceOnTop(container));
+            if (suitableStack != null)
             {
-                if (stack.CanPlaceOnTop(container))
-                {
-                    stack.AddContainer(container);
-                    return true;
-                }
+                suitableStack.AddContainer(container);
+                return true;
             }
+
             return false; // Geen geschikte plaats gevonden
         }
 
@@ -49,20 +48,8 @@ namespace Schipvervoer.Logic
         {
             foreach (var container in containers)
             {
-                bool placed = false;
-                foreach (var stack in ship.ContainerStacks)
+                if (!TryPlaceContainer(ship, container))
                 {
-                    if (stack.CanPlaceOnTop(container))
-                    {
-                        stack.AddContainer(container);
-                        placed = true;
-                        break;
-                    }
-                }
-
-                if (!placed)
-                {
-                    // Als de container niet geplaatst kan worden, maak een nieuwe stack
                     var newStack = new ContainerStack();
                     newStack.AddContainer(container);
                     ship.AddContainerStack(newStack);

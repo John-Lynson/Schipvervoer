@@ -16,19 +16,17 @@ namespace Schipvervoer.Logic
 
         public bool CanPlaceOnTop(Container container)
         {
-            // Controleer of de container bovenop geplaatst kan worden
             if (container.IsValuable)
             {
                 // Waardevolle containers kunnen alleen bovenop een lege stack of bovenop een andere waardevolle container
                 return Containers.Count == 0 || Containers.All(c => c.IsValuable);
             }
-            else
-            {
-                // Voor reguliere containers, controleer of het totale gewicht niet overschreden wordt
-                int totalWeightAbove = Containers.Sum(c => c.Weight);
-                return totalWeightAbove + container.Weight <= MaxWeightOnTop;
-            }
+
+            // Voor reguliere containers, controleer of het totale gewicht niet overschreden wordt
+            int totalWeightAbove = Containers.Sum(c => c.Weight);
+            return totalWeightAbove + container.Weight <= MaxWeightOnTop;
         }
+
 
         public void AddContainer(Container container)
         {

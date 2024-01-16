@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Schipvervoer.Logic;
+using System.Collections.Generic;
 using System.Linq;
-using Schipvervoer.Logic;
 
 namespace Schipvervoer.Models
 {
@@ -8,6 +8,7 @@ namespace Schipvervoer.Models
     {
         public int MaxWeight { get; set; }
         public List<ContainerStack> ContainerStacks { get; private set; }
+        private int _cachedTotalWeight = -1;
 
         public Ship(int maxWeight)
         {
@@ -18,29 +19,49 @@ namespace Schipvervoer.Models
         public void AddContainerStack(ContainerStack stack)
         {
             ContainerStacks.Add(stack);
+            UpdateTotalWeight(); // Update het totale gewicht wanneer een nieuwe stack wordt toegevoegd
+        }
+
+        private void UpdateTotalWeight()
+        {
+            _cachedTotalWeight = ContainerStacks.Sum(stack => stack.TotalWeight());
         }
 
         public bool IsOverloaded()
         {
-            int totalWeight = ContainerStacks.Sum(stack => stack.TotalWeight());
-            return totalWeight > MaxWeight;
+            return _cachedTotalWeight > MaxWeight;
         }
 
         public bool IsMinWeightMaintained()
         {
-            int totalWeight = ContainerStacks.Sum(stack => stack.TotalWeight());
-            return totalWeight >= MaxWeight * 0.5; // Minstens 50% van het MaxGewicht
+            return _cachedTotalWeight >= MaxWeight * 0.5; // Minstens 50% van het MaxGewicht
         }
 
         public bool IsWeightDistributedProperly()
         {
-            int halfIndex = ContainerStacks.Count / 2;
-            int leftWeight = ContainerStacks.Take(halfIndex).Sum(stack => stack.TotalWeight());
-            int rightWeight = ContainerStacks.Skip(halfIndex).Sum(stack => stack.TotalWeight());
+            int totalWeight = ContainerStacks.Sum(stack => stack.TotalWeight());
+            int targetWeightPerSide = totalWeight / 2;
+            int tolerance = (int)(MaxWeight * 0.2);
 
-            return Math.Abs(leftWeight - rightWeight) <= MaxWeight * 0.2; // Maximaal 20% verschil
+            int leftWeight = 0;
+            int rightWeight = 0;
+
+            foreach (var stack in ContainerStacks)
+            {
+                if (Math.Abs((leftWeight + stack.TotalWeight()) - rightWeight) <=
+                    Math.Abs(leftWeight - (rightWeight + stack.TotalWeight())))
+                {
+                    leftWeight += stack.TotalWeight();
+                }
+                else
+                {
+                    rightWeight += stack.TotalWeight();
+                }
+            }
+
+            return Math.Abs(leftWeight - rightWeight) <= tolerance;
         }
 
-        // Overige methoden...
+        // ... overige methoden ...
     }
 }
