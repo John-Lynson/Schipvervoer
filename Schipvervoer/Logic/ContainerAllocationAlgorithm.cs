@@ -33,7 +33,6 @@ namespace Schipvervoer.Logic
 
         private bool TryPlaceContainer(Ship ship, Container container)
         {
-            // Zoek naar een bestaande stack waar de container bovenop kan
             var suitableStack = ship.ContainerStacks.FirstOrDefault(stack => stack.CanPlaceOnTop(container));
             if (suitableStack != null)
             {
@@ -41,19 +40,19 @@ namespace Schipvervoer.Logic
                 return true;
             }
 
-            return false; // Geen geschikte plaats gevonden
+            // Als er geen geschikte stack is, maak een nieuwe stack
+            var newStack = new ContainerStack();
+            newStack.AddContainer(container);
+            ship.AddContainerStack(newStack);
+            return true;
         }
+
 
         public void AllocateContainersToStacks(Ship ship, List<Container> containers)
         {
             foreach (var container in containers)
             {
-                if (!TryPlaceContainer(ship, container))
-                {
-                    var newStack = new ContainerStack();
-                    newStack.AddContainer(container);
-                    ship.AddContainerStack(newStack);
-                }
+                TryPlaceContainer(ship, container);
             }
 
             if (!ship.IsWeightDistributedProperly() || !ship.IsMinWeightMaintained())
