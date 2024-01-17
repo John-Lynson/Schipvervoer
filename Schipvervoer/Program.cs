@@ -1,6 +1,7 @@
 ﻿using Schipvervoer.Logic;
 using Schipvervoer.Models;
 using System;
+using System.Collections.Generic;
 
 class Program
 {
@@ -9,7 +10,10 @@ class Program
         Console.WriteLine("Voer de maximale gewichtscapaciteit van het schip in:");
         int maxWeight = int.Parse(Console.ReadLine());
 
-        Ship ship = new Ship(maxWeight);
+        // Voeg lengte en breedte toe (deze kunnen ook dynamisch worden opgevraagd)
+        int length = 10; // Voorbeeldwaarde
+        int width = 10;  // Voorbeeldwaarde
+        Ship ship = new Ship(maxWeight, length, width);
 
         Console.WriteLine("Voer het aantal containers in:");
         int containerCount = int.Parse(Console.ReadLine());
@@ -29,7 +33,7 @@ class Program
         }
 
         ContainerAllocationAlgorithm algorithm = new ContainerAllocationAlgorithm();
-        algorithm.AllocateContainersToStacks(ship, containers);
+        algorithm.AllocateContainers(ship, containers); // Zorg ervoor dat deze methode correct is geïmplementeerd
 
         // Visualisatie van de indeling
         VisualizeShipLayout(ship);

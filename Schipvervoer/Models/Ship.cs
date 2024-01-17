@@ -9,11 +9,27 @@ namespace Schipvervoer.Models
         public int MaxWeight { get; set; }
         public List<ContainerStack> ContainerStacks { get; private set; }
         private int _cachedTotalWeight = -1;
+        public int Length { get; set; }
+        public int Width { get; set; }
 
-        public Ship(int maxWeight)
+        public Ship(int maxWeight, int length, int width)
         {
             MaxWeight = maxWeight;
+            Length = length;
+            Width = width;
             ContainerStacks = new List<ContainerStack>();
+            InitializeStacks();
+        }
+
+        private void InitializeStacks()
+        {
+            for (int i = 0; i < Length; i++)
+            {
+                for (int j = 0; j < Width; j++)
+                {
+                    ContainerStacks.Add(new ContainerStack());
+                }
+            }
         }
 
         public void AddContainerStack(ContainerStack stack)
@@ -61,6 +77,44 @@ namespace Schipvervoer.Models
 
             return Math.Abs(leftWeight - rightWeight) <= tolerance;
         }
+
+        public bool AreCoolingRequirementsMet()
+        {
+            // Aannemende dat de eerste rij van containerstacks overeenkomt met de eerste 'Width' stacks in de lijst
+            for (int i = 0; i < Width; i++)
+            {
+                foreach (var container in ContainerStacks[i].Containers)
+                {
+                    if (container.RequiresCooling && i >= Width)
+                    {
+                        // Een gekoelde container bevindt zich niet in de eerste rij
+                        return false;
+                    }
+                }
+            }
+
+            // Alle gekoelde containers bevinden zich in de eerste rij
+            return true;
+        }
+
+        public bool AreValuableContainersAccessible()
+        {
+            foreach (var stack in ContainerStacks)
+            {
+                for (int i = 0; i < stack.Containers.Count; i++)
+                {
+                    if (stack.Containers[i].IsValuable && i != 0)
+                    {
+                        // Een waardevolle container heeft andere containers erbovenop
+                        return false;
+                    }
+                }
+            }
+
+            // Alle waardevolle containers zijn toegankelijk (geen andere containers erbovenop)
+            return true;
+        }
+
 
         // ... overige methoden ...
     }

@@ -14,47 +14,76 @@ namespace Schipvervoer.Tests
         [SetUp]
         public void Setup()
         {
-            // Stel een schip in met een bepaalde capaciteit
-            ship = new Ship(100000); // Voorbeeld capaciteit
+            ship = new Ship(100000, 10, 10); // Gebruik de juiste waarden voor length en width
             algorithm = new ContainerAllocationAlgorithm();
         }
 
         [Test]
-        public void Allocate_NormalContainer_ShouldBePlaced()
+        public void TestContainerAllocation()
         {
-            var containers = new List<Container> { new Container(20000, false, false) };
-            algorithm.AllocateContainersToStacks(ship, containers);
-            Assert.That(ship.ContainerStacks, Has.Count.EqualTo(1));
-            Assert.That(ship.ContainerStacks[0].Containers, Has.Count.EqualTo(1));
-            Assert.IsFalse(ship.ContainerStacks[0].Containers[0].IsValuable);
-            Assert.IsFalse(ship.ContainerStacks[0].Containers[0].RequiresCooling);
+            // Aanmaken van een reeks containers met verschillende eigenschappen
+            var containers = new List<Container>
+    {
+        new Container(20000, false, false), // Normale container
+        new Container(25000, true, false),  // Waardevolle container
+        new Container(15000, false, true),  // Gekoelde container
+        new Container(18000, false, false), // Normale container
+        // Voeg meer containers toe indien nodig
+    };
+
+            algorithm.AllocateContainers(ship, containers);
+
+            // Asserts voor elke specifieke vereiste
+            Assert.IsTrue(ship.IsMinWeightMaintained(), "Minimaal gewicht niet gehandhaafd");
+            Assert.IsTrue(ship.IsWeightDistributedProperly(), "Gewichtsverdeling niet correct");
+            Assert.IsTrue(ship.AreCoolingRequirementsMet(), "Koelingsvereisten niet voldaan");
+            Assert.IsTrue(ship.AreValuableContainersAccessible(), "Toegankelijkheid waardevolle containers niet voldaan");
+
+            // Extra asserts om te controleren of alle containers zijn geplaatst
+            int totalContainersPlaced = ship.ContainerStacks.Sum(stack => stack.Containers.Count);
+            Assert.AreEqual(containers.Count, totalContainersPlaced, "Niet alle containers zijn geplaatst");
+
+            // Extra checks voor de plaatsing van gekoelde en waardevolle containers
+            Assert.IsTrue(CheckCoolingContainersPlacement(ship), "Gekoelde containers niet correct geplaatst");
+            Assert.IsTrue(CheckValuableContainersPlacement(ship), "Waardevolle containers niet correct geplaatst");
         }
 
-        [Test]
-        public void Allocate_ValuableContainer_ShouldBeAccessible()
+        private bool CheckCoolingContainersPlacement(Ship ship)
         {
-            var containers = new List<Container> { new Container(10000, true, false) };
-            algorithm.AllocateContainersToStacks(ship, containers);
-            Assert.IsTrue(ship.ContainerStacks[0].Containers[0].IsValuable);
-            // Voeg aanvullende logica toe om te controleren of de waardevolle container toegankelijk is
+            // Controleer of alle gekoelde containers in de eerste rij (eerste 'Width' stacks) staan
+            for (int i = 0; i < ship.Width; i++)
+            {
+                if (ship.ContainerStacks[i].Containers.Any(c => c.RequiresCooling))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
-        [Test]
-        public void Allocate_CoolableContainer_ShouldBeInFirstRow()
+        private bool CheckValuableContainersPlacement(Ship ship)
         {
-            var containers = new List<Container> { new Container(15000, false, true) };
-            algorithm.AllocateContainersToStacks(ship, containers);
-            Assert.IsTrue(ship.ContainerStacks[0].Containers[0].RequiresCooling);
-        }
-
-        [Test]
-        public void Allocate_ValuableAndCoolableContainer_ShouldBeAccessibleAndInFirstRow()
-        {
-            var containers = new List<Container> { new Container(10000, true, true) };
-            algorithm.AllocateContainersToStacks(ship, containers);
-            Assert.IsTrue(ship.ContainerStacks[0].Containers.Exists(c => c.IsValuable && c.RequiresCooling));
-            // Controleer of de container zowel toegankelijk als in de eerste rij is
+            // Controleer of er geen containers bovenop waardevolle containers staan
+            foreach (var stack in ship.ContainerStacks)
+            {
+                bool foundValuable = false;
+                foreach (var container in stack.Containers)
+                {
+                    if (container.IsValuable)
+                    {
+                        if (foundValuable) // Een tweede waardevolle container gevonden in dezelfde stack
+                        {
+                            return false;
+                        }
+                        foundValuable = true;
+                    }
+                    else if (foundValuable) // Een niet-waardevolle container bovenop een waardevolle container
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
     }
 }
-

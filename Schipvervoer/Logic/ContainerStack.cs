@@ -6,7 +6,7 @@ namespace Schipvervoer.Logic
 {
     public class ContainerStack
     {
-        private const int MaxWeightOnTop = 120000; // Maximaal gewicht in kg
+        public const int MaxWeightOnTop = 120000; // Maximaal gewicht in kg
         public List<Container> Containers { get; private set; }
 
         public ContainerStack()
@@ -18,13 +18,12 @@ namespace Schipvervoer.Logic
         {
             if (container.IsValuable)
             {
-                // Waardevolle containers kunnen alleen bovenop een lege stack of bovenop een andere waardevolle container
+                // Waardevolle containers alleen bovenop als stack leeg is of alleen waardevolle containers bevat
                 return Containers.Count == 0 || Containers.All(c => c.IsValuable);
             }
 
-            // Voor reguliere containers, controleer of het totale gewicht niet overschreden wordt
             int totalWeightAbove = Containers.Sum(c => c.Weight);
-            return totalWeightAbove + container.Weight <= MaxWeightOnTop;
+            return totalWeightAbove + container.Weight <= 120000; // 120 ton
         }
 
 
@@ -32,7 +31,7 @@ namespace Schipvervoer.Logic
         {
             if (!CanPlaceOnTop(container))
             {
-                throw new InvalidOperationException("Kan container niet bovenop plaatsen");
+                throw new InvalidOperationException($"Kan container (Gewicht: {container.Weight}, Waardevol: {container.IsValuable}, Gekoeld: {container.RequiresCooling}) niet bovenop plaatsen in stack met totaalgewicht {TotalWeight()}");
             }
             Containers.Add(container);
         }

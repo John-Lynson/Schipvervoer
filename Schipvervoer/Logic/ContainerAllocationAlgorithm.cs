@@ -15,15 +15,18 @@ namespace Schipvervoer.Logic
             {
                 if (!TryPlaceContainer(ship, container))
                 {
-                    // Behandel het geval waar een container niet geplaatst kan worden
-                    throw new InvalidOperationException("Kan container niet plaatsen");
+                    throw new InvalidOperationException($"Kan container (Gewicht: {container.Weight}, Waardevol: {container.IsValuable}, Gekoeld: {container.RequiresCooling}) niet plaatsen.");
                 }
+            }
+
+            if (!ship.IsWeightDistributedProperly() || !ship.IsMinWeightMaintained())
+            {
+                throw new InvalidOperationException("Kan containers niet correct plaatsen: gewichtsverdeling of minimale gewichtseis niet voldaan.");
             }
         }
 
         private List<Container> SortContainers(List<Container> containers)
         {
-            // Sorteer eerst gekoelde, dan waardevolle, dan overige containers
             return containers
                 .OrderByDescending(c => c.RequiresCooling)
                 .ThenByDescending(c => c.IsValuable)
@@ -33,18 +36,70 @@ namespace Schipvervoer.Logic
 
         private bool TryPlaceContainer(Ship ship, Container container)
         {
-            var suitableStack = ship.ContainerStacks.FirstOrDefault(stack => stack.CanPlaceOnTop(container));
-            if (suitableStack != null)
+            // Eerst proberen we de waardevolle containers te plaatsen
+            if (container.IsValuable)
             {
-                suitableStack.AddContainer(container);
+                foreach (var stack in ship.ContainerStacks)
+                {
+                    if (stack.Containers.Count == 0 || stack.Containers.All(c => c.IsValuable))
+                    {
+                        stack.AddContainer(container);
+                        return true;
+                    }
+                }
+            }
+
+            // Controleer op gekoelde containers
+            if (container.RequiresCooling)
+            {
+                for (int i = 0; i < ship.Width; i++)
+                {
+                    if (CanPlaceContainerInStack(ship.ContainerStacks[i], container))
+                    {
+                        ship.ContainerStacks[i].AddContainer(container);
+                        return true;
+                    }
+                }
+            }
+            else // Voor niet-gekoelde, niet-waardevolle containers
+            {
+                foreach (var stack in ship.ContainerStacks)
+                {
+                    if (CanPlaceContainerInStack(stack, container))
+                    {
+                        stack.AddContainer(container);
+                        return true;
+                    }
+                }
+            }
+
+            // Als er geen geschikte stack is gevonden
+            return false;
+        }
+
+
+        private bool CanPlaceContainerInStack(ContainerStack stack, Container container)
+        {
+            // Controleer of de container waardevol is en of de stack leeg is of alleen waardevolle containers bevat
+            if (container.IsValuable && (stack.Containers.Count == 0 || stack.Containers.All(c => c.IsValuable)))
+            {
                 return true;
             }
 
-            // Als er geen geschikte stack is, maak een nieuwe stack
-            var newStack = new ContainerStack();
-            newStack.AddContainer(container);
-            ship.AddContainerStack(newStack);
-            return true;
+            // Controleer het totale gewicht op de stack
+            int totalWeightAbove = stack.TotalWeight();
+            if (totalWeightAbove + container.Weight <= ContainerStack.MaxWeightOnTop)
+            {
+                return true;
+            }
+
+            // Als de container niet waardevol is, maar de stack heeft waardevolle containers, plaats dan niet
+            if (stack.Containers.Any(c => c.IsValuable))
+            {
+                return false;
+            }
+
+            return false;
         }
 
 
