@@ -1,14 +1,15 @@
 ﻿using Schipvervoer.Logic;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics; // Voeg deze namespace toe voor logging
 
 namespace Schipvervoer.Models
 {
     public class Ship
     {
         public int MaxWeight { get; set; }
-        public List<ContainerStack> ContainerStacks { get; private set; }
-        private int _cachedTotalWeight = -1;
+        public ContainerStack[,] ShipLayout { get; private set; }
         public int Length { get; set; }
         public int Width { get; set; }
 
@@ -17,8 +18,9 @@ namespace Schipvervoer.Models
             MaxWeight = maxWeight;
             Length = length;
             Width = width;
-            ContainerStacks = new List<ContainerStack>();
+            ShipLayout = new ContainerStack[length, width];
             InitializeStacks();
+            Trace.WriteLine($"Schip aangemaakt met MaxWeight: {MaxWeight}, Length: {Length}, Width: {Width}.");
         }
 
         private void InitializeStacks()
@@ -27,94 +29,93 @@ namespace Schipvervoer.Models
             {
                 for (int j = 0; j < Width; j++)
                 {
-                    ContainerStacks.Add(new ContainerStack());
+                    ShipLayout[i, j] = new ContainerStack();
                 }
             }
-        }
-
-        public void AddContainerStack(ContainerStack stack)
-        {
-            ContainerStacks.Add(stack);
-            UpdateTotalWeight(); // Update het totale gewicht wanneer een nieuwe stack wordt toegevoegd
-        }
-
-        private void UpdateTotalWeight()
-        {
-            _cachedTotalWeight = ContainerStacks.Sum(stack => stack.TotalWeight());
+            Trace.WriteLine("Stacks op het schip geïnitialiseerd.");
         }
 
         public bool IsOverloaded()
         {
-            return _cachedTotalWeight > MaxWeight;
+            var overloaded = CalculateTotalWeight() > MaxWeight;
+            Trace.WriteLine($"IsOverloaded check: {overloaded}.");
+            return overloaded;
         }
 
         public bool IsMinWeightMaintained()
         {
-            return _cachedTotalWeight >= MaxWeight * 0.5; // Minstens 50% van het MaxGewicht
+            var minWeightMaintained = CalculateTotalWeight() >= MaxWeight * 0.5;
+            Trace.WriteLine($"IsMinWeightMaintained check: {minWeightMaintained}.");
+            return minWeightMaintained;
+        }
+
+        private int CalculateTotalWeight()
+        {
+            int totalWeight = 0;
+            foreach (var stack in ShipLayout)
+            {
+                totalWeight += stack.TotalWeight();
+            }
+            Trace.WriteLine($"Totaalgewicht berekend: {totalWeight}.");
+            return totalWeight;
         }
 
         public bool IsWeightDistributedProperly()
         {
-            int totalWeight = ContainerStacks.Sum(stack => stack.TotalWeight());
-            int targetWeightPerSide = totalWeight / 2;
+            Trace.WriteLine("Controleren of het gewicht goed verdeeld is.");
+
+            int leftWeight = CalculateSideWeight(0, Width / 2);
+            int rightWeight = CalculateSideWeight(Width / 2, Width);
+
             int tolerance = (int)(MaxWeight * 0.2);
+            bool weightDistributedProperly = Math.Abs(leftWeight - rightWeight) <= tolerance;
+            Trace.WriteLine($"Gewichtsverdeling: Links {leftWeight}, Rechts {rightWeight}, Tolerantie {tolerance}, Resultaat {weightDistributedProperly}");
 
-            int leftWeight = 0;
-            int rightWeight = 0;
+            return weightDistributedProperly;
+        }
 
-            foreach (var stack in ContainerStacks)
+
+        public int CalculateSideWeight(int startWidth, int endWidth)
+        {
+            int sideWeight = 0;
+            for (int i = 0; i < Length; i++)
             {
-                if (Math.Abs((leftWeight + stack.TotalWeight()) - rightWeight) <=
-                    Math.Abs(leftWeight - (rightWeight + stack.TotalWeight())))
+                for (int j = startWidth; j < endWidth; j++)
                 {
-                    leftWeight += stack.TotalWeight();
-                }
-                else
-                {
-                    rightWeight += stack.TotalWeight();
+                    sideWeight += ShipLayout[i, j].TotalWeight();
                 }
             }
-
-            return Math.Abs(leftWeight - rightWeight) <= tolerance;
+            Trace.WriteLine($"Zijgewicht berekend: startWidth={startWidth}, endWidth={endWidth}, weight={sideWeight}.");
+            return sideWeight;
         }
 
         public bool AreCoolingRequirementsMet()
         {
-            // Aannemende dat de eerste rij van containerstacks overeenkomt met de eerste 'Width' stacks in de lijst
-            for (int i = 0; i < Width; i++)
+            for (int j = 0; j < Width; j++)
             {
-                foreach (var container in ContainerStacks[i].Containers)
+                if (ShipLayout[0, j].ContainsCooling())
                 {
-                    if (container.RequiresCooling && i >= Width)
-                    {
-                        // Een gekoelde container bevindt zich niet in de eerste rij
-                        return false;
-                    }
+                    Trace.WriteLine("Koelingsvereisten niet voldaan.");
+                    return false;
                 }
             }
-
-            // Alle gekoelde containers bevinden zich in de eerste rij
+            Trace.WriteLine("Koelingsvereisten voldaan.");
             return true;
         }
 
         public bool AreValuableContainersAccessible()
         {
-            foreach (var stack in ContainerStacks)
+            foreach (var stack in ShipLayout)
             {
-                for (int i = 0; i < stack.Containers.Count; i++)
+                if (stack.ContainsValuable() && !stack.IsTopContainerValuable())
                 {
-                    if (stack.Containers[i].IsValuable && i != 0)
-                    {
-                        // Een waardevolle container heeft andere containers erbovenop
-                        return false;
-                    }
+                    Trace.WriteLine("Toegankelijkheid waardevolle containers niet voldaan.");
+                    return false;
                 }
             }
-
-            // Alle waardevolle containers zijn toegankelijk (geen andere containers erbovenop)
+            Trace.WriteLine("Toegankelijkheid waardevolle containers voldaan.");
             return true;
         }
-
 
         // ... overige methoden ...
     }
