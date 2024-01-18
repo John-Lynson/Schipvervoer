@@ -42,6 +42,70 @@ namespace Schipvervoer.Tests
             Assert.AreEqual(containers.Count, totalContainersPlaced, "Niet alle containers zijn geplaatst");
         }
 
+        [Test]
+        public void TestMaxStackHeight()
+        {
+            var containers = new List<Container>
+    {
+        new Container(30000, false, false), // Zware container
+        new Container(4000, false, false),  // Lichtere container
+        new Container(10000, true, false),  // Waardevolle container
+        new Container(15000, false, true),  // Gekoelde container
+        // Voeg meer containers toe om de stapelhoogte te testen
+    };
+
+            algorithm.AllocateContainers(ship, containers);
+
+            foreach (var stack in ship.ShipLayout)
+            {
+                int totalWeight = stack.TotalWeight();
+                Assert.LessOrEqual(totalWeight, ContainerStack.MaxWeightOnTop, "Stapel overschrijdt maximale gewicht");
+            }
+        }
+
+
+        [Test]
+        public void TestWeightDistribution()
+        {
+            var containers = new List<Container>
+    {
+        new Container(10000, false, false),
+        new Container(15000, false, false),
+        new Container(20000, false, false),
+        new Container(25000, true, false),  // Waardevolle container
+        new Container(15000, false, true),  // Gekoelde container
+        // Voeg meer containers toe om een evenwichtige gewichtsverdeling te testen
+    };
+
+            algorithm.AllocateContainers(ship, containers);
+
+            int leftWeight = ship.CalculateSideWeight(0, ship.Width / 2);
+            int rightWeight = ship.CalculateSideWeight(ship.Width / 2, ship.Width);
+            int tolerance = (int)(ship.MaxWeight * 0.2);
+
+            Assert.LessOrEqual(Math.Abs(leftWeight - rightWeight), tolerance, "Gewichtsverdeling is niet binnen de tolerantie");
+        }
+
+
+        [Test]
+        public void TestSpecialContainerRequirements()
+        {
+            var containers = new List<Container>
+    {
+        new Container(20000, true, false), // Waardevolle container
+        new Container(15000, false, true), // Gekoelde container
+        new Container(10000, false, false),
+        new Container(25000, false, false),
+        // Voeg meer containers toe om de speciale vereisten te testen
+    };
+
+            algorithm.AllocateContainers(ship, containers);
+
+            Assert.IsTrue(ship.AreCoolingRequirementsMet(), "Koelingsvereisten niet voldaan");
+            Assert.IsTrue(ship.AreValuableContainersAccessible(), "Toegankelijkheid waardevolle containers niet voldaan");
+        }
+
+
         private int CountTotalContainersPlaced(Ship ship)
         {
             int count = 0;
