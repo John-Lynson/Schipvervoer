@@ -91,17 +91,25 @@ namespace Schipvervoer.Models
 
         public bool AreCoolingRequirementsMet()
         {
-            for (int j = 0; j < Width; j++)
+            // Ga door alle stacks buiten de eerste rij.
+            for (int i = 1; i < Length; i++)
             {
-                if (ShipLayout[0, j].ContainsCooling())
+                for (int j = 0; j < Width; j++)
                 {
-                    Trace.WriteLine("Koelingsvereisten niet voldaan.");
-                    return false;
+                    // Als een stack buiten de eerste rij een gekoelde container bevat, return false.
+                    if (ShipLayout[i, j].ContainsCooling())
+                    {
+                        Trace.WriteLine("Koelingsvereisten niet voldaan: gekoelde container buiten de eerste rij.");
+                        return false;
+                    }
                 }
             }
+
+            // Als we hier komen, betekent dit dat er geen gekoelde containers buiten de eerste rij zijn.
             Trace.WriteLine("Koelingsvereisten voldaan.");
             return true;
         }
+
 
         public bool AreValuableContainersAccessible()
         {

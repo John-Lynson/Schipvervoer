@@ -70,19 +70,14 @@ namespace Schipvervoer.Logic
         private bool TryPlaceContainer(Ship ship, Container container)
         {
             Trace.WriteLine($"Proberen container te plaatsen: Gewicht={container.Weight}, Waardevol={container.IsValuable}, Gekoeld={container.RequiresCooling}");
+
+            // Behandel gekoelde containers
             if (container.RequiresCooling)
             {
-                for (int i = 0; i < ship.Width; i++)
-                {
-                    if (CanPlaceContainerInStack(ship.ShipLayout[0, i], container))
-                    {
-                        ship.ShipLayout[0, i].AddContainer(container);
-                        Trace.WriteLine($"Gekoelde container geplaatst in rij 0, kolom {i}.");
-                        return true;
-                    }
-                }
+                return TryPlaceCoolingContainer(ship, container);
             }
 
+            // Behandel waardevolle containers
             if (container.IsValuable)
             {
                 for (int i = 0; i < ship.Length; i++)
@@ -99,13 +94,22 @@ namespace Schipvervoer.Logic
                 }
             }
 
-            if (PlaceRegularContainer(ship, container))
-            {
-                Trace.WriteLine($"Reguliere container geplaatst.");
-                return true;
-            }
+            // Behandel reguliere containers
+            return PlaceRegularContainer(ship, container);
+        }
 
-            Trace.WriteLine($"Kon geen geschikte plaats vinden voor container met gewicht {container.Weight}.");
+        private bool TryPlaceCoolingContainer(Ship ship, Container container)
+        {
+            // Probeer alleen in de eerste rij (rij 0) te plaatsen
+            for (int i = 0; i < ship.Width; i++)
+            {
+                if (CanPlaceContainerInStack(ship.ShipLayout[0, i], container))
+                {
+                    ship.ShipLayout[0, i].AddContainer(container);
+                    Trace.WriteLine($"Gekoelde container geplaatst in rij 0, kolom {i}.");
+                    return true;
+                }
+            }
             return false;
         }
 
