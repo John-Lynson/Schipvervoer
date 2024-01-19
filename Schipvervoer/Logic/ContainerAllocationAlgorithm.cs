@@ -10,24 +10,20 @@ namespace Schipvervoer.Logic
     {
         public void AllocateContainers(Ship ship, List<Container> containers)
         {
-            Trace.WriteLine("Start allocatie van containers.");
             var sortedContainers = SortContainers(containers, ship);
 
             foreach (var container in sortedContainers)
             {
                 if (!TryPlaceContainer(ship, container))
                 {
-                    Trace.WriteLine("Kon container niet plaatsen, gooit InvalidOperationException.");
                     throw new InvalidOperationException("Kan container niet plaatsen");
                 }
             }
 
             if (!ship.IsWeightDistributedProperly() || !ship.IsMinWeightMaintained())
             {
-                Trace.WriteLine("Gewichtsverdeling of minimale gewichtseis niet voldaan, gooit InvalidOperationException.");
                 throw new InvalidOperationException("Kan containers niet correct plaatsen: gewichtsverdeling of minimale gewichtseis niet voldaan");
             }
-            Trace.WriteLine("Allocatie van containers voltooid.");
         }
 
         private List<Container> SortContainers(List<Container> containers, Ship ship)
@@ -69,15 +65,12 @@ namespace Schipvervoer.Logic
 
         private bool TryPlaceContainer(Ship ship, Container container)
         {
-            Trace.WriteLine($"Proberen container te plaatsen: Gewicht={container.Weight}, Waardevol={container.IsValuable}, Gekoeld={container.RequiresCooling}");
 
-            // Behandel gekoelde containers
             if (container.RequiresCooling)
             {
                 return TryPlaceCoolingContainer(ship, container);
             }
 
-            // Behandel waardevolle containers
             if (container.IsValuable)
             {
                 for (int i = 0; i < ship.Length; i++)
@@ -87,26 +80,22 @@ namespace Schipvervoer.Logic
                         if (CanPlaceContainerInStack(ship.ShipLayout[i, j], container) && ship.ShipLayout[i, j].Containers.Count == 0)
                         {
                             ship.ShipLayout[i, j].AddContainer(container);
-                            Trace.WriteLine($"Waardevolle container geplaatst in rij {i}, kolom {j}.");
                             return true;
                         }
                     }
                 }
             }
 
-            // Behandel reguliere containers
             return PlaceRegularContainer(ship, container);
         }
 
         private bool TryPlaceCoolingContainer(Ship ship, Container container)
         {
-            // Probeer alleen in de eerste rij (rij 0) te plaatsen
             for (int i = 0; i < ship.Width; i++)
             {
                 if (CanPlaceContainerInStack(ship.ShipLayout[0, i], container))
                 {
                     ship.ShipLayout[0, i].AddContainer(container);
-                    Trace.WriteLine($"Gekoelde container geplaatst in rij 0, kolom {i}.");
                     return true;
                 }
             }
@@ -115,10 +104,8 @@ namespace Schipvervoer.Logic
 
         private bool PlaceRegularContainer(Ship ship, Container container)
         {
-            // Bepaal de kant van het schip die momenteel lichter is
             bool placeOnLeftSide = ship.CalculateSideWeight(0, ship.Width / 2) < ship.CalculateSideWeight(ship.Width / 2, ship.Width);
 
-            // Start bij de lichtere kant voor het plaatsen van de container
             int startWidth = placeOnLeftSide ? 0 : ship.Width / 2;
             int endWidth = placeOnLeftSide ? ship.Width / 2 : ship.Width;
 
@@ -129,7 +116,6 @@ namespace Schipvervoer.Logic
                     if (CanPlaceContainerInStack(ship.ShipLayout[i, j], container))
                     {
                         ship.ShipLayout[i, j].AddContainer(container);
-                        Trace.WriteLine($"Reguliere container geplaatst in rij {i}, kolom {j}.");
                         return true;
                     }
                 }
@@ -142,7 +128,6 @@ namespace Schipvervoer.Logic
                     if (CanPlaceContainerInStack(ship.ShipLayout[i, j], container))
                     {
                         ship.ShipLayout[i, j].AddContainer(container);
-                        Trace.WriteLine($"Reguliere container geplaatst in rij {i}, kolom {j}.");
                         return true;
                     }
                 }
@@ -155,10 +140,7 @@ namespace Schipvervoer.Logic
         private bool CanPlaceContainerInStack(ContainerStack stack, Container container)
         {
             bool canPlace = stack.CanPlaceOnTop(container);
-            Trace.WriteLine($"Kan container met gewicht {container.Weight} plaatsen in stack: {canPlace}.");
             return canPlace;
         }
-
-        // ... Rest van de methoden, indien aanwezig ...
     }
 }

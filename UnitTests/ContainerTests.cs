@@ -15,7 +15,7 @@ namespace Schipvervoer.Tests
         [SetUp]
         public void Setup()
         {
-            ship = new Ship(100000, 10, 10); // Gebruik de juiste waarden voor length en width
+            ship = new Ship(100000, 4, 8); 
             algorithm = new ContainerAllocationAlgorithm();
         }
 
@@ -28,7 +28,6 @@ namespace Schipvervoer.Tests
                 new Container(25000, true, false),  // Waardevolle container
                 new Container(15000, false, true),  // Gekoelde container
                 new Container(18000, false, false), // Normale container
-                // Voeg meer containers toe indien nodig
             };
 
             algorithm.AllocateContainers(ship, containers);
@@ -51,7 +50,6 @@ namespace Schipvervoer.Tests
         new Container(4000, false, false),  // Lichtere container
         new Container(10000, true, false),  // Waardevolle container
         new Container(15000, false, true),  // Gekoelde container
-        // Voeg meer containers toe om de stapelhoogte te testen
     };
 
             algorithm.AllocateContainers(ship, containers);
@@ -74,7 +72,6 @@ namespace Schipvervoer.Tests
         new Container(20000, false, false),
         new Container(25000, true, false),  // Waardevolle container
         new Container(15000, false, true),  // Gekoelde container
-        // Voeg meer containers toe om een evenwichtige gewichtsverdeling te testen
     };
 
             algorithm.AllocateContainers(ship, containers);
@@ -96,7 +93,6 @@ namespace Schipvervoer.Tests
         new Container(15000, false, true), // Gekoelde container
         new Container(10000, false, false),
         new Container(25000, false, false),
-        // Voeg meer containers toe om de speciale vereisten te testen
     };
 
             algorithm.AllocateContainers(ship, containers);

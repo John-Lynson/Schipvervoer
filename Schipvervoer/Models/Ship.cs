@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Diagnostics; // Voeg deze namespace toe voor logging
+using System.Diagnostics; 
 
 namespace Schipvervoer.Models
 {
@@ -20,7 +20,6 @@ namespace Schipvervoer.Models
             Width = width;
             ShipLayout = new ContainerStack[length, width];
             InitializeStacks();
-            Trace.WriteLine($"Schip aangemaakt met MaxWeight: {MaxWeight}, Length: {Length}, Width: {Width}.");
         }
 
         private void InitializeStacks()
@@ -32,20 +31,17 @@ namespace Schipvervoer.Models
                     ShipLayout[i, j] = new ContainerStack();
                 }
             }
-            Trace.WriteLine("Stacks op het schip geïnitialiseerd.");
         }
 
         public bool IsOverloaded()
         {
             var overloaded = CalculateTotalWeight() > MaxWeight;
-            Trace.WriteLine($"IsOverloaded check: {overloaded}.");
             return overloaded;
         }
 
         public bool IsMinWeightMaintained()
         {
             var minWeightMaintained = CalculateTotalWeight() >= MaxWeight * 0.5;
-            Trace.WriteLine($"IsMinWeightMaintained check: {minWeightMaintained}.");
             return minWeightMaintained;
         }
 
@@ -62,14 +58,12 @@ namespace Schipvervoer.Models
 
         public bool IsWeightDistributedProperly()
         {
-            Trace.WriteLine("Controleren of het gewicht goed verdeeld is.");
 
             int leftWeight = CalculateSideWeight(0, Width / 2);
             int rightWeight = CalculateSideWeight(Width / 2, Width);
 
             int tolerance = (int)(MaxWeight * 0.2);
             bool weightDistributedProperly = Math.Abs(leftWeight - rightWeight) <= tolerance;
-            Trace.WriteLine($"Gewichtsverdeling: Links {leftWeight}, Rechts {rightWeight}, Tolerantie {tolerance}, Resultaat {weightDistributedProperly}");
 
             return weightDistributedProperly;
         }
@@ -85,28 +79,22 @@ namespace Schipvervoer.Models
                     sideWeight += ShipLayout[i, j].TotalWeight();
                 }
             }
-            Trace.WriteLine($"Zijgewicht berekend: startWidth={startWidth}, endWidth={endWidth}, weight={sideWeight}.");
             return sideWeight;
         }
 
         public bool AreCoolingRequirementsMet()
         {
-            // Ga door alle stacks buiten de eerste rij.
             for (int i = 1; i < Length; i++)
             {
                 for (int j = 0; j < Width; j++)
                 {
-                    // Als een stack buiten de eerste rij een gekoelde container bevat, return false.
                     if (ShipLayout[i, j].ContainsCooling())
                     {
-                        Trace.WriteLine("Koelingsvereisten niet voldaan: gekoelde container buiten de eerste rij.");
                         return false;
                     }
                 }
             }
 
-            // Als we hier komen, betekent dit dat er geen gekoelde containers buiten de eerste rij zijn.
-            Trace.WriteLine("Koelingsvereisten voldaan.");
             return true;
         }
 
@@ -117,14 +105,10 @@ namespace Schipvervoer.Models
             {
                 if (stack.ContainsValuable() && !stack.IsTopContainerValuable())
                 {
-                    Trace.WriteLine("Toegankelijkheid waardevolle containers niet voldaan.");
                     return false;
                 }
             }
-            Trace.WriteLine("Toegankelijkheid waardevolle containers voldaan.");
             return true;
         }
-
-        // ... overige methoden ...
     }
 }
